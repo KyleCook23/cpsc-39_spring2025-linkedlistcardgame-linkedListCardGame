@@ -1,67 +1,93 @@
-//package linkedLists;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-//import java.util.ArrayList;
-//import java.util.List;
 import java.util.Scanner;
 
-
-
 public class CardGame {
-	
-	private static LinkList cardList = new LinkList();  // make list
+    public static void main(String[] args) {
+        LinkedList userDeck = new LinkedList();
+        LinkedList computerDeck = new LinkedList();
+        Scanner scanner = new Scanner(System.in);
 
-	public static void main(String[] args) {
-
-		// File name to read from
-        String fileName = "cards.txt"; // Ensure the file is in the working directory or specify the full path
-
-        // Read the file and create Card objects
-        try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                // Split the line into components
-                String[] details = line.split(","); // Assuming comma-separated values
-                if (details.length == 4) {
-                    // Parse card details
-                    String suit = details[0].trim();
-                    String name = details[1].trim();
-                    int value = Integer.parseInt(details[2].trim());
-                    String pic = details[3].trim();
-
-                    // Create a new Card object
-                    Card card = new Card(suit, name, value, pic);
-
-                    // Add the Card object to the list
-                    cardList.add(card);
-                } else {
-                    System.err.println("Invalid line format: " + line);
-                }
-            }
-        } catch (IOException e) {
-            System.err.println("Error reading file: " + e.getMessage());
+        System.out.println();
+        System.out.print("Enter your name: ");
+        String playerName = scanner.nextLine().trim();
+        if (playerName.isEmpty()) {
+            playerName = "Player 1";
         }
 
-        // Print the loaded cards
-        System.out.println("Cards loaded:");
-        cardList.displayList();
-		
-		Card[] playerHand = new Card[5];
-		for(int i = 0; i < playerHand.length; i++)
-			playerHand[i] = cardList.getFirst();
-		
-		System.out.println("players hand");
-		for(int i = 0; i < playerHand.length; i++)
-			System.out.println(playerHand[i]);
-		
-		System.out.println();
-		System.out.println("the deck");
-		cardList.displayList();
+        int userWins = 0;
+        int computerWins = 0;
 
-	}//end main
+        java.util.List<Card> fullDeck = Deck.buildShuffledDeck();
+        for (int i = 0; i < fullDeck.size(); i++) {
+            if (i %2 == 0) userDeck.add(fullDeck.get(i));
+            else computerDeck.add(fullDeck.get(i));
+        }
 
-}//end class
+        int round = 1;
+        System.out.println();
+        System.out.println("=== Wlecome to War: " + playerName + " vs. Computer === \n");
+
+        while (!userDeck.isEmpty() && !computerDeck.isEmpty()) {
+            System.out.println("Round " + round);
+            System.out.println();
+            System.out.println(playerName + " cards remaining: " + userDeck.size());
+            System.out.println("Computer cards remaining: " + computerDeck.size());
+
+            int totalCards = userDeck.size() + computerDeck.size();
+            double percentage = 100.0 * userDeck.size() / totalCards;
+            System.out.printf("%s holds %.1f%% of the cards\n", playerName, percentage);
+
+            System.out.print("Press Enter to draw a card...");
+            scanner.nextLine();
+            System.out.println();
+
+            Card userCard = userDeck.remove();
+            Card computerCard = computerDeck.remove();
+
+            System.out.println(playerName + " drew: " + userCard);
+            System.out.println("Computer drew: " + computerCard);
+
+            if (userCard.value > computerCard.value) {
+                System.out.println(">> " + playerName + " win this round!\n");
+                userDeck.add(userCard);
+                userDeck.add(computerCard);
+                userWins++;
+            } else if (computerCard.value > userCard.value) {
+                System.out.println(">> Computer wins this round!\n");
+                computerDeck.add(userCard);
+                computerDeck.add(computerCard);
+                computerWins++;
+            } else {
+                System.out.println(">> It's a tie! Cards are discarded.\n");
+            }   
+
+            if (round % 26 == 0) {
+                System.out.println();
+                System.out.println("Do you want to keep playing? (yes/no)");
+                String input = scanner.nextLine().toLowerCase();
+                if (!input.equals("yes")) {
+                    break;
+                }
+                System.out.println();
+            }
+            round++;
+        }
+        System.out.println("\n=== Game Over ===");
+        System.out.println("Rounds Played: " + (round - 1));
+        System.out.println(playerName + "'s rounds won: " + userWins);
+        System.out.println("Computer rounds won: " + computerWins);
+
+        if (userDeck.isEmpty()){
+            System.out.println("Computer wins the game by taking all your cards.");
+        } else if (computerDeck.isEmpty()) {
+            System.out.println("You win the game by taking all the computers cards!");
+        }else if (userWins > computerWins) {
+            System.out.println("You win the game by most rounds won!");
+        }else if (computerWins > userWins) {
+            System.out.println("The computer wins the game by most rounds won!");
+        }else {
+            System.out.println("Its a draw!");
+        }
+
+        scanner.close();
+    }
+}
